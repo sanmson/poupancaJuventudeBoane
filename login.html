@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poupança da Juventude Boane — Entrar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal-950:#0C2924; --teal-900:#0F332C; --teal-800:#164138;
+    --gold:#D9A441; --gold-dark:#A87B29;
+    --coral:#C1502E;
+    --ink:#17251F; --ink-soft:#4B5A54; --line: rgba(23,37,31,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;min-height:100vh;
+    background:var(--teal-950);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Times New Roman', Times, serif;
+    padding:24px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .login-card{
+    background:#fff;border-radius:18px;
+    padding:38px 34px 30px;
+    max-width:380px;width:100%;
+    box-shadow:0 24px 60px rgba(0,0,0,0.28);
+    text-align:center;
+  }
+  .badge{
+    width:60px;height:60px;border-radius:50%;
+    background:var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Times New Roman', Times, serif;font-weight:600;font-size:24px;color:var(--teal-950);
+    margin:0 auto 18px;
+  }
+  h1{font-family:'Times New Roman',Times,serif;font-weight:500;font-size:19px;margin:0 0 4px;color:var(--ink);line-height:1.35;}
+  .subtitle{font-size:12.5px;color:var(--ink-soft);margin:0 0 26px;}
+
+  form{text-align:left;}
+  .field{margin-bottom:16px;}
+  label{font-size:12.5px;color:var(--ink-soft);display:block;margin-bottom:6px;}
+  input{
+    width:100%;font-family:inherit;font-size:14px;color:var(--ink);
+    padding:10px 12px;border:1px solid var(--line);border-radius:9px;
+  }
+  input:focus-visible{outline:2px solid var(--gold-dark);outline-offset:1px;border-color:var(--gold-dark);}
+
+  .pass-wrap{position:relative;}
+  .pass-wrap input{padding-right:42px;}
+  #toggle-pass{
+    position:absolute;right:5px;top:50%;transform:translateY(-50%);
+    background:none;border:none;cursor:pointer;color:var(--ink-soft);
+    padding:6px;display:flex;
+  }
+  #toggle-pass:hover{color:var(--ink);}
+
+  .error-msg{color:var(--coral);font-size:12.5px;margin:-6px 0 12px;}
+
+  .btn-entrar{
+    width:100%;background:var(--gold-dark);color:#fff;border:none;border-radius:9px;
+    padding:12px;font-family:inherit;font-size:14.5px;font-weight:600;cursor:pointer;margin-top:4px;
+  }
+  .btn-entrar:hover{background:#8f6620;}
+
+  .recover-link{
+    display:block;margin-top:18px;font-size:12.5px;color:var(--gold-dark);
+    text-decoration:none;text-align:center;
+  }
+  .recover-link:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+
+  <div class="login-card">
+    <div class="badge">B</div>
+    <h1><span style="color:#C1502E;">Bem-vindo à Poupança da Juventude</span><br><span style="color:var(--gold-dark);font-size:1.15em;">BOANE</span></h1>
+    <p class="subtitle">Acesso reservado a funcionários</p>
+
+    <form id="login-form">
+      <div class="field">
+        <label for="user">Nome de utilizador</label>
+        <input type="text" id="user" placeholder="nome do utilizador" autocomplete="username" required>
+      </div>
+
+      <div class="field">
+        <label for="pass">Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="pass" placeholder="senha do utilizador" autocomplete="current-password" required>
+          <button type="button" id="toggle-pass" aria-label="Mostrar senha">
+            <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <p class="error-msg" id="error-msg" hidden>Utilizador ou senha incorretos.</p>
+
+      <button type="submit" class="btn-entrar">Entrar</button>
+    </form>
+
+    <a href="#" class="recover-link">Recuperar senha</a>
+  </div>
+
+<script>
+  // Credenciais fixas do administrador.
+  const utilizadores = {
+    'poupanca.boane': 'PoupancaBoane2026!'
+  };
+
+  // Funcionários registados pelo administrador (guardados no navegador).
+  function getFuncionarios() {
+    try { return JSON.parse(localStorage.getItem('pjb_funcionarios')) || []; }
+    catch (e) { return []; }
+  }
+
+  const form = document.getElementById('login-form');
+  const userInput = document.getElementById('user');
+  const passInput = document.getElementById('pass');
+  const errorMsg = document.getElementById('error-msg');
+  const toggleBtn = document.getElementById('toggle-pass');
+  const eyeIcon = document.getElementById('eye-icon');
+
+  toggleBtn.addEventListener('click', () => {
+    const showing = passInput.type === 'text';
+    passInput.type = showing ? 'password' : 'text';
+    eyeIcon.innerHTML = showing
+      ? '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>'
+      : '<path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 002.8 2.8"/><path d="M6.6 6.6C4 8.3 2 12 2 12s3.5 7 10 7c1.8 0 3.4-.4 4.7-1.1M17.9 17.9C20.4 16 22 12 22 12s-1-2-2.8-3.7"/>';
+    toggleBtn.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
+  });
+
+  function registarAuditoria(utilizador, acao) {
+    try {
+      const log = JSON.parse(localStorage.getItem('pjb_auditoria')) || [];
+      log.unshift({ data: new Date().toISOString(), utilizador, acao });
+      localStorage.setItem('pjb_auditoria', JSON.stringify(log.slice(0, 300)));
+    } catch (e) { /* silencioso */ }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const utilizador = userInput.value.trim().toLowerCase();
+    const senha = passInput.value;
+
+    if (utilizadores[utilizador] && utilizadores[utilizador] === senha) {
+      sessionStorage.setItem('pjb_auth', '1');
+      sessionStorage.setItem('pjb_user', utilizador);
+      sessionStorage.setItem('pjb_role', 'admin');
+      registarAuditoria(utilizador, 'Entrou no sistema');
+      window.location.href = 'Index.html';
+      return;
+    }
+
+    const funcionario = getFuncionarios().find(f =>
+      f.username === utilizador && f.senha === senha && f.estado === 'Ativo'
+    );
+    if (funcionario) {
+      sessionStorage.setItem('pjb_auth', '1');
+      sessionStorage.setItem('pjb_user', utilizador);
+      sessionStorage.setItem('pjb_role', 'funcionario');
+      sessionStorage.setItem('pjb_permissoes', JSON.stringify(funcionario.permissoes || []));
+      registarAuditoria(utilizador, 'Entrou no sistema');
+      window.location.href = 'Index.html';
+      return;
+    }
+
+    errorMsg.hidden = false;
+  });
+</script>
+</body>
+</html>
