@@ -132,9 +132,9 @@
 
     <div class="content">
       <div class="kpis">
-        <div class="kpi"><p class="label">Total guardado</p><p class="value">0 MT</p></div>
-        <div class="kpi"><p class="label">Contas ativas</p><p class="value">0</p></div>
-        <div class="kpi"><p class="label">Depósito médio</p><p class="value">0 MT</p></div>
+        <div class="kpi"><p class="label">Total guardado</p><p class="value" id="kpi-total">0 MT</p></div>
+        <div class="kpi"><p class="label">Contas ativas</p><p class="value" id="kpi-contas">0</p></div>
+        <div class="kpi"><p class="label">Depósito médio</p><p class="value" id="kpi-media">0 MT</p></div>
         <div class="kpi"><p class="label">Taxa aplicável</p><p class="value">5%</p></div>
       </div>
 
@@ -148,14 +148,15 @@
         <thead>
           <tr><th>ID cliente</th><th>Nome</th><th class="num">Saldo</th><th>Aberta em</th><th>Estado</th></tr>
         </thead>
-        <tbody>
+        <tbody id="tbody-poupancas">
           <tr><td colspan="5" style="text-align:center;color:var(--ink-soft);padding:20px;">Nenhuma conta de poupança registada ainda</td></tr>
         </tbody>
       </table>
 
       <p class="panel-title">Registar movimento</p>
+      <div id="msg-poupancas" style="display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;"></div>
       <div class="form-card">
-        <form>
+        <form id="form-poupancas">
           <fieldset>
             <legend>Cliente e operação</legend>
             <div class="field-grid">
@@ -213,6 +214,106 @@
       window.location.href = 'login.html';
     });
   }
+</script>
+
+<script>
+  const TAXA_LEVANTAMENTO = 0.05; // 5% sobre o valor levantado
+
+  function carregarPoupancas() {
+    try { return JSON.parse(localStorage.getItem('pjb_poupancas')) || []; }
+    catch (err) { return []; }
+  }
+  function guardarPoupancas(contas) {
+    localStorage.setItem('pjb_poupancas', JSON.stringify(contas));
+  }
+  function nomeCliente(id) {
+    try {
+      const clientes = JSON.parse(localStorage.getItem('pjb_clientes')) || [];
+      const c = clientes.find(c => String(c.id) === String(id));
+      return c ? c.nome : '—';
+    } catch (err) { return '—'; }
+  }
+  function formatarMT(v) {
+    return Number(v).toLocaleString('pt-MZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MT';
+  }
+  function mostrarMensagem(texto, tipo) {
+    const el = document.getElementById('msg-poupancas');
+    el.textContent = texto;
+    el.style.display = 'block';
+    el.style.background = tipo === 'erro' ? 'var(--coral-bg)' : 'var(--sage-bg)';
+    el.style.color = tipo === 'erro' ? '#8B3A22' : '#2F5E43';
+  }
+
+  function renderizarPoupancas() {
+    const contas = carregarPoupancas();
+    const tbody = document.getElementById('tbody-poupancas');
+
+    if (contas.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--ink-soft);padding:20px;">Nenhuma conta de poupança registada ainda</td></tr>';
+    } else {
+      tbody.innerHTML = contas.map(c => `
+        <tr>
+          <td class="mono">${c.id}</td>
+          <td>${nomeCliente(c.id)}</td>
+          <td class="num mono">${formatarMT(c.saldo)}</td>
+          <td>${c.aberta}</td>
+          <td><span class="pill">${c.estado}</span></td>
+        </tr>`).join('');
+    }
+
+    const totalGuardado = contas.reduce((soma, c) => soma + c.saldo, 0);
+    const numDepositos = contas.reduce((n, c) => n + c.movimentos.filter(m => m.tipo === 'Depósito').length, 0);
+    const somaDepositos = contas.reduce((soma, c) => soma + c.movimentos.filter(m => m.tipo === 'Depósito').reduce((s, m) => s + m.valor, 0), 0);
+
+    document.getElementById('kpi-total').textContent = formatarMT(totalGuardado);
+    document.getElementById('kpi-contas').textContent = contas.length;
+    document.getElementById('kpi-media').textContent = numDepositos > 0 ? formatarMT(somaDepositos / numDepositos) : '0 MT';
+  }
+
+  const formPoupancas = document.getElementById('form-poupancas');
+  if (formPoupancas) {
+    formPoupancas.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const idCliente = document.getElementById('cliente').value.trim();
+      const tipo = document.querySelector('input[name="tipo"]:checked').parentElement.textContent.trim();
+      const valor = parseFloat(document.getElementById('valor').value.replace(',', '.'));
+      const data = document.getElementById('data').value;
+
+      if (!idCliente || !valor || valor <= 0 || !data) {
+        mostrarMensagem('Preencha todos os campos com valores válidos.', 'erro');
+        return;
+      }
+
+      const contas = carregarPoupancas();
+      let conta = contas.find(c => c.id === idCliente);
+      if (!conta) {
+        conta = { id: idCliente, saldo: 0, aberta: data, estado: 'Ativa', movimentos: [] };
+        contas.push(conta);
+      }
+
+      if (tipo === 'Depósito') {
+        conta.saldo += valor;
+        conta.movimentos.push({ tipo: 'Depósito', valor, data });
+      } else {
+        const taxa = conta.saldo * TAXA_LEVANTAMENTO;
+        const totalNecessario = valor + taxa;
+        if (valor > conta.saldo) {
+          mostrarMensagem(`Saldo insuficiente. Saldo atual: ${formatarMT(conta.saldo)}.`, 'erro');
+          return;
+        }
+        conta.saldo -= valor;
+        conta.movimentos.push({ tipo: 'Levantamento', valor, taxa, data });
+      }
+
+      guardarPoupancas(contas);
+      renderizarPoupancas();
+      mostrarMensagem(`${tipo} de ${formatarMT(valor)} registado com sucesso para o cliente ${idCliente}.`, 'sucesso');
+      formPoupancas.reset();
+    });
+  }
+
+  renderizarPoupancas();
 </script>
 </body>
 </html>

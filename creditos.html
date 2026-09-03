@@ -132,9 +132,9 @@
 
     <div class="content">
       <div class="kpis">
-        <div class="kpi"><p class="label">Total emprestado</p><p class="value">0 MT</p></div>
-        <div class="kpi"><p class="label">Créditos ativos</p><p class="value">0</p></div>
-        <div class="kpi alert"><p class="label">Em incumprimento</p><p class="value">0</p></div>
+        <div class="kpi"><p class="label">Total emprestado</p><p class="value" id="kpi-total">0 MT</p></div>
+        <div class="kpi"><p class="label">Créditos ativos</p><p class="value" id="kpi-ativos">0</p></div>
+        <div class="kpi alert"><p class="label">Em incumprimento</p><p class="value" id="kpi-incumprimento">0</p></div>
       </div>
 
       <p class="panel-title">Créditos concedidos</p>
@@ -142,14 +142,15 @@
         <thead>
           <tr><th>ID cliente</th><th>Nome</th><th class="num">Valor</th><th>Taxa</th><th>Prazo</th><th>Estado</th></tr>
         </thead>
-        <tbody>
+        <tbody id="tbody-creditos">
           <tr><td colspan="6" style="text-align:center;color:var(--ink-soft);padding:20px;">Nenhum crédito registado ainda</td></tr>
         </tbody>
       </table>
 
       <p class="panel-title">Novo pedido de crédito</p>
+      <div id="msg-creditos" style="display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;"></div>
       <div class="form-card">
-        <form>
+        <form id="form-creditos">
           <fieldset>
             <legend>Detalhes do pedido</legend>
             <div class="field-grid">
@@ -208,6 +209,91 @@
       window.location.href = 'login.html';
     });
   }
+</script>
+
+<script>
+  function carregarCreditos() {
+    try { return JSON.parse(localStorage.getItem('pjb_creditos')) || []; }
+    catch (err) { return []; }
+  }
+  function guardarCreditos(creditos) {
+    localStorage.setItem('pjb_creditos', JSON.stringify(creditos));
+  }
+  function nomeCliente(id) {
+    try {
+      const clientes = JSON.parse(localStorage.getItem('pjb_clientes')) || [];
+      const c = clientes.find(c => String(c.id) === String(id));
+      return c ? c.nome : '—';
+    } catch (err) { return '—'; }
+  }
+  function formatarMT(v) {
+    return Number(v).toLocaleString('pt-MZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' MT';
+  }
+  function mostrarMensagem(texto, tipo) {
+    const el = document.getElementById('msg-creditos');
+    el.textContent = texto;
+    el.style.display = 'block';
+    el.style.background = tipo === 'erro' ? 'var(--coral-bg)' : 'var(--sage-bg)';
+    el.style.color = tipo === 'erro' ? '#8B3A22' : '#2F5E43';
+  }
+
+  function renderizarCreditos() {
+    const creditos = carregarCreditos();
+    const tbody = document.getElementById('tbody-creditos');
+
+    if (creditos.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-soft);padding:20px;">Nenhum crédito registado ainda</td></tr>';
+    } else {
+      tbody.innerHTML = creditos.map(c => `
+        <tr>
+          <td class="mono">${c.id}</td>
+          <td>${nomeCliente(c.id)}</td>
+          <td class="num mono">${formatarMT(c.valor)}</td>
+          <td>${c.taxa}%</td>
+          <td>${c.prazo} meses</td>
+          <td><span class="pill ok">${c.estado}</span></td>
+        </tr>`).join('');
+    }
+
+    const totalEmprestado = creditos.reduce((soma, c) => soma + c.valor, 0);
+    const ativos = creditos.filter(c => c.estado === 'Ativo').length;
+    const incumprimento = creditos.filter(c => c.estado === 'Em incumprimento').length;
+
+    document.getElementById('kpi-total').textContent = formatarMT(totalEmprestado);
+    document.getElementById('kpi-ativos').textContent = ativos;
+    document.getElementById('kpi-incumprimento').textContent = incumprimento;
+  }
+
+  const formCreditos = document.getElementById('form-creditos');
+  if (formCreditos) {
+    formCreditos.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const idCliente = document.getElementById('cliente').value.trim();
+      const valor = parseFloat(document.getElementById('valor').value.replace(',', '.'));
+      const prazo = parseFloat(document.getElementById('prazo').value.replace(',', '.'));
+      const taxa = parseFloat(document.getElementById('taxa').value.replace(',', '.'));
+      const motivo = document.getElementById('motivo').value.trim();
+
+      if (!idCliente || !valor || valor <= 0 || !prazo || prazo <= 0 || isNaN(taxa)) {
+        mostrarMensagem('Preencha todos os campos obrigatórios com valores válidos.', 'erro');
+        return;
+      }
+
+      const creditos = carregarCreditos();
+      creditos.push({
+        id: idCliente, valor, prazo, taxa, motivo,
+        estado: 'Ativo', data: new Date().toISOString()
+      });
+
+      guardarCreditos(creditos);
+      renderizarCreditos();
+      mostrarMensagem(`Pedido de crédito de ${formatarMT(valor)} registado com sucesso para o cliente ${idCliente}.`, 'sucesso');
+      formCreditos.reset();
+    });
+  }
+
+  renderizarCreditos();
 </script>
 </body>
 </html>
