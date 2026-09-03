@@ -64,7 +64,6 @@
     display:flex;
     flex-direction:column;
     padding:28px 18px;
-    position:relative;
   }
   .brand{display:flex;align-items:center;gap:10px;margin-bottom:36px;padding:0 4px;}
   .brand-mark{
@@ -77,20 +76,6 @@
   .brand-name1{display:block;font-size:13px;font-weight:600;color:#E4A491;}
   .brand-name2{display:block;font-size:16px;font-weight:700;color:var(--gold);letter-spacing:.03em;margin-top:1px;}
   .brand-sub{display:block;font-family:'Times New Roman',Times,serif;font-size:10.5px;color:#A9BDB4;letter-spacing:.04em;text-transform:uppercase;margin-top:3px;}
-
-  .menu-toggle{
-    display:none;
-    background:none;
-    border:1px solid rgba(255,255,255,0.25);
-    color:var(--sand-100);
-    font-size:18px;
-    line-height:1;
-    padding:8px 11px;
-    border-radius:8px;
-    cursor:pointer;
-    margin-left:auto;
-  }
-  .menu-toggle:hover{background:var(--teal-900);}
 
   nav{display:flex;flex-direction:column;gap:2px;}
   .nav-item{
@@ -177,22 +162,9 @@
 
   @media (max-width: 880px){
     .app{flex-direction:column;}
-    .sidebar{width:100%;flex-direction:row;align-items:center;padding:14px 18px;flex-wrap:wrap;}
-    .sidebar-foot{margin-top:0;padding-top:0;border-top:none;margin-left:8px;order:2;}
-    .menu-toggle{display:block;order:3;}
-    nav{
-      display:none;
-      position:absolute;
-      top:100%;
-      left:0;
-      right:0;
-      background:var(--teal-950);
-      flex-direction:column;
-      padding:10px 18px 18px;
-      z-index:50;
-      box-shadow:0 8px 16px rgba(0,0,0,0.25);
-    }
-    nav.open{display:flex;}
+    .sidebar{width:100%;flex-direction:row;align-items:center;padding:14px 18px;}
+    .sidebar-foot{margin-top:0;padding-top:0;border-top:none;margin-left:auto;}
+    nav{display:none;}
     .kpis{grid-template-columns:repeat(2,1fr);}
     .grid-2{grid-template-columns:1fr;}
     .content{padding:20px;}
@@ -209,8 +181,7 @@
       <div class="brand-mark">B</div>
       <div class="brand-text"><span class="brand-name1">Poupança da Juventude</span><span class="brand-name2">BOANE</span><span class="brand-sub">Sistema interno</span></div>
     </div>
-    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
-    <nav id="mainNav">
+    <nav>
       <button class="nav-item active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Painel geral</button>
       <a href="clientes.html" class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg>Clientes</a>
       <a href="funcionarios.html" class="nav-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.5"/><path d="M8 17c0-2 1.8-3 4-3s4 1 4 3"/></svg>Funcionários</a>
@@ -237,10 +208,10 @@
 
     <div class="content">
       <div class="kpis">
-        <div class="kpi"><p class="label">Total em poupança</p><p class="value">0 MT</p></div>
-        <div class="kpi"><p class="label">Créditos ativos</p><p class="value">0</p></div>
-        <div class="kpi alert"><p class="label">Prestações em atraso</p><p class="value">0</p></div>
-        <div class="kpi"><p class="label">Taxa de cobrança</p><p class="value">—</p></div>
+        <div class="kpi"><p class="label">Total em poupança</p><p class="value">57.400 MT</p></div>
+        <div class="kpi"><p class="label">Créditos ativos</p><p class="value">34</p></div>
+        <div class="kpi alert"><p class="label">Prestações em atraso</p><p class="value">7</p></div>
+        <div class="kpi"><p class="label">Taxa de cobrança</p><p class="value">82%</p></div>
       </div>
 
       <div>
@@ -250,7 +221,30 @@
             <tr><th>Cliente</th><th class="num">Valor</th><th>Estado</th><th class="num">Ação</th></tr>
           </thead>
           <tbody>
-            <tr><td colspan="4" style="text-align:center;color:var(--ink-soft);padding:20px;">Nenhuma prestação registada ainda</td></tr>
+            <tr>
+              <td>Nélio Chissano</td>
+              <td class="num mono">1.200 MT</td>
+              <td><span class="pill late">Atrasado · 6d</span></td>
+              <td class="num call">☎</td>
+            </tr>
+            <tr>
+              <td>Ivete Muianga</td>
+              <td class="num mono">850 MT</td>
+              <td><span class="pill soon">Vence amanhã</span></td>
+              <td class="num call">☎</td>
+            </tr>
+            <tr>
+              <td>Dércio Sitoe</td>
+              <td class="num mono">2.000 MT</td>
+              <td><span class="pill late">Atrasado · 14d</span></td>
+              <td class="num call">☎</td>
+            </tr>
+            <tr>
+              <td>Zaida Cuamba</td>
+              <td class="num mono">600 MT</td>
+              <td><span class="pill paid">Paga</span></td>
+              <td class="num call">✓</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -290,25 +284,6 @@
       sessionStorage.removeItem('pjb_auth');
       sessionStorage.removeItem('pjb_user');
       window.location.href = 'login.html';
-    });
-  }
-</script>
-
-<script>
-  // Menu hambúrguer para telemóvel: mostra/esconde a navegação
-  const menuToggle = document.getElementById('menuToggle');
-  const mainNav = document.getElementById('mainNav');
-  if (menuToggle && mainNav) {
-    menuToggle.addEventListener('click', () => {
-      const aberto = mainNav.classList.toggle('open');
-      menuToggle.setAttribute('aria-expanded', aberto ? 'true' : 'false');
-    });
-    // fecha o menu ao escolher uma opção (útil em telemóvel)
-    mainNav.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', () => {
-        mainNav.classList.remove('open');
-        menuToggle.setAttribute('aria-expanded', 'false');
-      });
     });
   }
 </script>
